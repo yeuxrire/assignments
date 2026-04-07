@@ -12,7 +12,7 @@ char original_filename[MAX_LEN];
 void load_file(const char *filename) {
 	FILE *fp = fopen(filename, "r");
 	if (fp == NULL) {
-		perror("File Opening is Failed.");
+		perror("File opening Failed.");
 		exit(1);
 	}
 	
@@ -35,7 +35,7 @@ void print_line(int n) {
 void delete_line(int n) {
 	if (n >= 1 && n <= line_count) {
 		free(lines[n-1]);
-		for (int i = n-1; 0 < line_count-1; i++) {
+		for (int i = n-1; i < line_count-1; i++) {
 			lines[i] = lines[i+1];
 		}
 		line_count--;
@@ -44,6 +44,7 @@ void delete_line(int n) {
 
 void append_line(int n) {
 	char new_text[MAX_LEN];
+	printf("[a]: ");
 	if (fgets(new_text, MAX_LEN, stdin) == NULL) return;
 	new_text[strcspn(new_text, "\n")] ='\0';
 
@@ -57,11 +58,13 @@ void append_line(int n) {
 
 void substitute_line(int n) {
 	char new_text[MAX_LEN];
+	printf("[s]: ");
 	if (fgets(new_text, MAX_LEN, stdin) == NULL) return;
 	new_text[strcspn(new_text, "\n")] = '\0';
 
 	free(lines[n-1]);
 	lines[n-1] = strdup(new_text);
+	printf("[%d] Line substituted.\n", n);
 }
 
 void save_file(char *target_filename) {
@@ -69,7 +72,7 @@ void save_file(char *target_filename) {
 
 	FILE *fp = fopen(filename, "w");
 	if (fp == NULL) {
-		perror("File opening is failed.");
+		perror("File saving failed.");
 		return;
 	}
 
@@ -77,6 +80,7 @@ void save_file(char *target_filename) {
 		fprintf(fp, "%s\n", lines[i]);
 	}
 	fclose(fp);
+	printf("Saved to file '%s'!\n", filename);
 }
 
 void process_command(char cmd, char *target) {
@@ -87,6 +91,7 @@ void process_command(char cmd, char *target) {
 			for (int i = 1; i <= line_count; i++) print_line(i);
 		} else if (cmd == 'd') {
 			for (int i = line_count; i >= 1; i--) delete_line(i);
+			printf("All line deleted.\n");
 		}
 	} else if (strchr(target, '-')) {
 		char *temp = strdup(target);
@@ -97,6 +102,7 @@ void process_command(char cmd, char *target) {
 			for (int i = start; i <= end; i++) print_line(i);
 		} else if (cmd == 'd') {
 			for (int i = end; i >= start; i--) delete_line(i);
+			printf("Lines %d-%d deleted.\n", start, end);
 		}
 		free(temp);
 	} else if (strchr(target, ',')) {
@@ -121,6 +127,7 @@ void process_command(char cmd, char *target) {
 				}
 			}
 			for (int i = 0; i < count; i++) delete_line(list[i]);
+			printf("Selected lines deleted.\n");
 		}
 		free(temp);
 	} else {
@@ -129,6 +136,7 @@ void process_command(char cmd, char *target) {
 			if (cmd == 'p') print_line(n);
 			else if (cmd == 'd') {
 				delete_line(n);
+				printf("[%d] Line deleted.\n", n);
 			}
 		}
 	}
@@ -166,10 +174,10 @@ int main(int argc, char *argv[]){
 		} else if ((cmd >= '0' && cmd <= '9') || cmd == '*') {
 			process_command('p', input);
 		} else {
-			printf("Try other commands.\n");
+			printf("Unknown command.\n");
 		}
 	}
 	
-	for (int i = 1; i < line_count; i++) free(lines[i]);
+	for (int i = 0; i < line_count; i++) free(lines[i]);
 	return 0;
 }
